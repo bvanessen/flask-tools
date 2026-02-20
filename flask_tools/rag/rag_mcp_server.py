@@ -1,6 +1,7 @@
-import argparse
 import json
+import click
 from enum import StrEnum
+import uvicorn
 
 import datasets
 from datasets import load_dataset
@@ -37,6 +38,9 @@ from flask_tools.retrosynthesis.FLASKv2_reactions import (
 )
 
 import logging
+
+from lc_conductor.tool_registration import register_tool_server, get_asgi_app
+from flask_tools.utils.server_utils import update_mcp_network, get_hostname
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -336,89 +340,132 @@ retro_expert_model = None
 tokenizer = None
 
 
-def main():
+@click.command()
+@click.option("--port", type=int, default=8127, help="Port to run the server on")
+@click.option("--host", type=str, default=None, help="Host to run the server on")
+@click.option(
+    "--name", type=str, default="flask_rag_v1_tools", help="Name of the MCP server"
+)
+@click.option(
+    "--copilot-port", type=int, default=8001, help="Port to the running copilot backend"
+)
+@click.option(
+    "--copilot-host", type=str, default=None, help="Host to the running copilot backend"
+)
+@click.option(
+    "--database-path",
+    envvar="FLASK_RAG_DATABASE_PATH",
+    type=str,
+    help="Path to database file (JSON) for similarity search",
+)
+@click.option(
+    "--embedder-path",
+    envvar="FLASK_RAG_EMBEDDER_PATH",
+    type=str,
+    help="Path to embedding model",
+)
+@click.option(
+    "--embedder-vocab-path",
+    envvar="FLASK_RAG_EMBEDDER_VOCAB_PATH",
+    type=str,
+    help="Path to embedding model vocab json file",
+)
+@click.option(
+    "--forward-embedding-path",
+    envvar="FLASK_RAG_FORWARD_EMBEDDING_PATH",
+    type=str,
+    help="Path to embedding file (NPY) corresponding to similarity search",
+)
+@click.option(
+    "--retro-embedding-path",
+    envvar="FLASK_RAG_RETRO_EMBEDDING_PATH",
+    type=str,
+    help="Path to embedding file (NPY) corresponding to similarity search",
+)
+@click.option(
+    "--all-mols-database-path",
+    envvar="FLASK_RAG_ALL_MOLS_DATABASE_PATH",
+    type=str,
+    help="Path to database file (txt) of one SMILES per line for similarity search",
+)
+@click.option(
+    "--all-mols-embedding-path",
+    envvar="FLASK_RAG_ALL_MOLS_EMBEDDING_PATH",
+    type=str,
+    help="Path to embedding file (NPY) corresponding to similarity search",
+)
+@click.option(
+    "--forward-expert-model-path",
+    envvar="FLASK_RAG_FORWARD_EXPERT_MODEL_PATH",
+    type=str,
+    help="Path to forward expert model",
+)
+@click.option(
+    "--retro-expert-model-path",
+    envvar="FLASK_RAG_RETRO_EXPERT_MODEL_PATH",
+    type=str,
+    help="Path to retro expert model",
+)
+# @click.option('--k_e', type=int, help='Number of expert predictions (per input data) to show in prompt')
+@click.option(
+    "--k_r",
+    type=int,
+    help="Number of similar reactions (per input data) to retrieve",
+    default=3,
+)
+@click.pass_context
+def main(
+    ctx,
+    port: int,
+    host: str,
+    name: str,
+    copilot_port: int,
+    copilot_host: int,
+    database_path: str,
+    embedder_path: str,
+    embedder_vocab_path: str,
+    forward_embedding_path: str,
+    retro_embedding_path: str,
+    all_mols_database_path: str,
+    all_mols_embedding_path: str,
+    forward_expert_model_path: str,
+    retro_expert_model_path: str,
+    k_r: int,
+):
     global embedder, forward_retriever, retro_retriever, forward_expert_model, retro_expert_model, tokenizer
-    # CLI arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--database-path",
-        type=str,
-        help="Path to database file (JSON) for similarity search",
-    )
-    parser.add_argument("--embedder-path", type=str, help="Path to embedding model")
-    parser.add_argument(
-        "--embedder-vocab-path",
-        type=str,
-        help="Path to embedding model vocab json file",
-    )
-    parser.add_argument(
-        "--forward-embedding-path",
-        type=str,
-        help="Path to embedding file (NPY) corresponding to similarity search",
-    )
-    parser.add_argument(
-        "--retro-embedding-path",
-        type=str,
-        help="Path to embedding file (NPY) corresponding to similarity search",
-    )
-    parser.add_argument(
-        "--all-mols-database-path",
-        type=str,
-        help="Path to database file (txt) of one SMILES per line for similarity search",
-    )
-    parser.add_argument(
-        "--all-mols-embedding-path",
-        type=str,
-        help="Path to embedding file (NPY) corresponding to similarity search",
-    )
-    parser.add_argument(
-        "--forward-expert-model-path", type=str, help="Path to forward expert model"
-    )
-    parser.add_argument(
-        "--retro-expert-model-path", type=str, help="Path to retro expert model"
-    )
-    # parser.add_argument('--k_e', type=int, help='Number of expert predictions (per input data) to show in prompt')
-    parser.add_argument(
-        "--k_r",
-        type=int,
-        help="Number of similar reactions (per input data) to retrieve",
-        default=3,
-    )
-    args = parser.parse_args()
-    for k, v in vars(args).items():
-        print(f"{k} = {v}", flush=True)
+    print("\n".join(f"{k} = {v}" for k, v in ctx.params.items()))
 
     # Init RAG components
     embedder = SmilesEmbedder(
-        model_path=args.embedder_path,
+        model_path=embedder_path,
         tokenizer=ChemformerTokenizer(
-            vocab_path=args.embedder_vocab_path,
+            vocab_path=embedder_vocab_path,
         ),
     )
     forward_retriever = FaissDataRetriever(
-        data_path=args.database_path,
-        emb_path=args.forward_embedding_path,
+        data_path=database_path,
+        emb_path=forward_embedding_path,
     )
     retro_retriever = FaissDataRetriever(
-        data_path=args.database_path,
-        emb_path=args.retro_embedding_path,
+        data_path=database_path,
+        emb_path=retro_embedding_path,
     )
     # retriever = forward_retriever if forward else retro_retriever
 
     tokenizer = AutoTokenizer.from_pretrained(
-        args.forward_expert_model_path or args.retro_expert_model_path,
+        forward_expert_model_path or retro_expert_model_path,
         padding_side="left",
     )
     tokenizer.add_special_tokens({"pad_token": "<|finetune_right_pad_id|>"})
-    if args.forward_expert_model_path is not None:
+    if forward_expert_model_path is not None:
         forward_expert_model = AutoModelForCausalLM.from_pretrained(
-            args.forward_expert_model_path,
+            forward_expert_model_path,
             device_map="cuda",
             torch_dtype=torch.bfloat16,
         )
-    if args.retro_expert_model_path is not None:
+    if retro_expert_model_path is not None:
         retro_expert_model = AutoModelForCausalLM.from_pretrained(
-            args.retro_expert_model_path,
+            retro_expert_model_path,
             device_map="cuda",
             torch_dtype=torch.bfloat16,
         )
@@ -459,9 +506,25 @@ def main():
             logger.debug("Calling `predict_reaction_reactants`")
             return predict_reaction_internal(molecules=products, forward=False)
 
+    if host is None:
+        _, host = get_hostname()
+
+    try:
+        register_tool_server(port, host, name, copilot_port, copilot_host)
+    except:
+        logger.info(
+            f"{name} could not connect to server for registration -- requires manual registration"
+        )
+
+    asgi_app = get_asgi_app(mcp)
+    if asgi_app:
+        uvicorn.run(asgi_app, host=host or "0.0.0.0", port=port, factory=True)
+    else:
+        logger.error("Could not access FastMCP ASGI app")
+
 
 if __name__ == "__main__":
     main()
-    mcp.run(
-        transport="sse",
-    )
+    # mcp.run(
+    #     transport="sse",
+    # )
