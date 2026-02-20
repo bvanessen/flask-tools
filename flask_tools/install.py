@@ -10,10 +10,6 @@ PACKAGE_GROUPS = {
         "packages": ["chemprice"],
         "description": "Chemical pricing analysis tools",
     },
-    "aizynthfinder": {
-        "packages": ["aizynthfinder", "reaction-utils"],
-        "description": "AiZynthfinder planning and reaction utilities",
-    },
 }
 
 
@@ -65,12 +61,12 @@ def run_pip_command(cmd, description):
     type=click.Choice(
         [
             "all",
-            "aizynthfinder",
             "rdkit",
             "flask",
             "chemprop",
             "chemprice",
             "rag",
+            "molecular_minds",
         ],
         case_sensitive=False,
     ),
@@ -100,9 +96,6 @@ def main(no_extras, no_main, editable, git_tag, extras, dry_run):
 
         # Only install chemprice
         $ flask-tools-install --extras chemprice
-
-        # Only install aizynthfinder tools
-        $ flask-tools-install --extras aizynthfinder
 
         # Install only optional packages (assumes main package already installed)
         $ flask-tools-install --no-main
@@ -176,11 +169,6 @@ def main(no_extras, no_main, editable, git_tag, extras, dry_run):
         commands.extend(install_packages_from_group("chemprice"))
     else:
         click.echo(f"\n⊘ Skipping chemprice")
-
-    if "aizynthfinder" in extras or "all" in extras:
-        commands.extend(install_packages_from_group("aizynthfinder"))
-    else:
-        click.echo(f"\n⊘ Skipping aizynthfinder packages")
 
     # Show plan
     if commands:

@@ -27,10 +27,10 @@ except (ImportError, ModuleNotFoundError) as e:
         "Install it with: pip install charge[flask]",
     )
 
-from charge.rag import SmilesEmbedder, FaissDataRetriever
-from charge.rag.rag_tokenizers import ChemformerTokenizer
-from charge.rag.prompts import ReactionDataPrompt
-from charge.servers.FLASKv2_reactions import (
+from flask_tools.rag import SmilesEmbedder, FaissDataRetriever
+from flask_tools.rag.rag_tokenizers import ChemformerTokenizer
+from flask_tools.rag.prompts import ReactionDataPrompt
+from flask_tools.retrosynthesis.FLASKv2_reactions import (
     format_rxn_prompt,
     PRODUCT_KEYS,
     REAGENT_KEYS,

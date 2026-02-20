@@ -41,9 +41,6 @@ flask-tools-install = "flask_tools.install:main"
 #autogen = ["autogen-agentchat>=0.7.0", "autogen-core>=0.7.0", "autogen-ext>=0.7.0", "openai>=2.0.0", "tiktoken>=0.10.0", "autogen-ext[openai]"]
 rdkit = ["rdkit>=2025.3.6"]
 flask = ["transformers", "peft", "trl", "torch>=2.8.0"]
-# This is the manually identified set of necessary tools for AiZynthFinder 4.4.0 to work with a --no-deps install
-# pip3 install --no-deps aizynthfinder reaction-utils
-aizynthfinder = ["paretoset", "rdchiral", "wrapt_timeout_decorator", "swifter", "apted", "scipy", "onnxruntime", "dask[dataframe]>=2025.9.0", "tables", "networkx", "xxhash", "jinja2", " markupsafe"]
 chemprop = ["chemprop>=2.2.0", "torch>=2.8.0", "lightning"]
 chemprice = []
 rag = ["autogen-agentchat>=0.7.0", "datasets", "faiss-cpu", "openai>=2.0.0", "transformers[torch]"]
@@ -51,6 +48,6 @@ molecular_minds = ["torch-geometric", "torch-scatter"]
 test = ["pytest", "pytest-asyncio", "pytest-mock", "responses", "httpx", "requests-mock"]
 
 # Define a set of optional packages for use when deploying persistent data services
-pds = ["flask-tools[aizynthfinder,autogen,rdkit,chemprice]"]
+pds = ["flask-tools[autogen,rdkit,chemprice]"]
 
-all = ["flask-tools[rdkit,flask,aizynthfinder,chemprop,chemprice,rag, molecular_minds]"]
+all = ["flask-tools[rdkit,flask,chemprop,chemprice,rag, molecular_minds]"]
