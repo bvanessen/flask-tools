@@ -26,7 +26,7 @@ from mcp.server.fastmcp import FastMCP
 from charge.clients.autogen import AutoGenPool
 from charge.clients.Client import Client
 import asyncio
-from flask_tools.chemistry import SMILES_utils
+from flask_tools.chemistry import smiles_utils
 from flask_tools.lmo.molecular_property_utils import get_density
 import argparse
 from typing import Optional, Literal, Tuple
@@ -125,7 +125,7 @@ def is_already_known(smiles: str) -> bool:
         raise ValueError("Invalid SMILES string.")
 
     try:
-        canonical_smiles = SMILES_utils.canonicalize_smiles(smiles)
+        canonical_smiles = smiles_utils.canonicalize_smiles(smiles)
 
         try:
             with open(JSON_FILE_PATH) as f:
@@ -145,8 +145,8 @@ def is_already_known(smiles: str) -> bool:
 
 
 # Add the SMILES utility functions as MCP tools
-mcp.tool()(SMILES_utils.canonicalize_smiles)
-mcp.tool()(SMILES_utils.verify_smiles)
+mcp.tool()(smiles_utils.canonicalize_smiles)
+mcp.tool()(smiles_utils.verify_smiles)
 
 
 @mcp.tool()
@@ -173,7 +173,7 @@ def calculate_property(
         logger.info(f"Density for SMILES {smiles}: {density}")
         return property, density
     elif property == "synthesizability":
-        synth_score = SMILES_utils.get_synthesizability(smiles)
+        synth_score = smiles_utils.get_synthesizability(smiles)
         logger.info(f"Synthesizability for SMILES {smiles}: {synth_score}")
         return property, synth_score
     else:

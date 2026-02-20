@@ -36,7 +36,7 @@ SMILES_mcp = FastMCP(
 
 logger.info("[RDKit-SMILES] Starting Chem and BioInformatics MCP Server")
 
-import charge.servers.SMILES_utils as smiles
+import charge.servers.smiles_utils as smiles
 
 SMILES_mcp.tool()(smiles.canonicalize_smiles)
 

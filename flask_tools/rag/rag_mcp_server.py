@@ -31,7 +31,7 @@ except (ImportError, ModuleNotFoundError) as e:
 from flask_tools.rag import SmilesEmbedder, FaissDataRetriever
 from flask_tools.rag.rag_tokenizers import ChemformerTokenizer
 from flask_tools.rag.prompts import ReactionDataPrompt
-from flask_tools.retrosynthesis.FLASKv2_reactions import (
+from flask_tools.retrosynthesis.flaskv2_reactions import (
     format_rxn_prompt,
     PRODUCT_KEYS,
     REAGENT_KEYS,

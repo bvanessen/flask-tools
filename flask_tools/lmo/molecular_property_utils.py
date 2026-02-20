@@ -20,7 +20,7 @@ except (ImportError, ModuleNotFoundError) as e:
         "Install it with: pip install flask-mcp-servers[rdkit]",
     )
 
-from flask_tools.chemistry.SMILES_utils import get_synthesizability
+from flask_tools.chemistry.smiles_utils import get_synthesizability
 import sys
 import os
 from typing import Literal, Tuple

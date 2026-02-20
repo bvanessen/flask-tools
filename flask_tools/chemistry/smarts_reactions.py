@@ -35,8 +35,8 @@ SMARTS_mcp = FastMCP(
 
 logger.info("[RDKit-SMARTS] Starting Chemistry and reaction verification MCP Server")
 
-import charge.servers.SMARTS_reactions_utils as smarts
-import charge.servers.SMILES_utils as smiles
+import charge.servers.smarts_reactions_utils as smarts
+import charge.servers.smiles_utils as smiles
 
 SMARTS_mcp.tool()(smarts.verify_reaction_SMARTS)
 
