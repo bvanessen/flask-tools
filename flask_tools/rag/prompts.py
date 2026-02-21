@@ -1,3 +1,10 @@
+###############################################################################
+## Copyright 2025-2026 Lawrence Livermore National Security, LLC.
+## See the top-level LICENSE file for details.
+##
+## SPDX-License-Identifier: Apache-2.0
+###############################################################################
+
 from dataclasses import dataclass
 
 from pydantic import BaseModel, field_validator, model_validator, Field
