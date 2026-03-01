@@ -5,8 +5,8 @@ from charge.tasks.RetrosynthesisTask import (
     TemplateFreeRetrosynthesisTask,
 )
 
-from charge.clients.Client import Client
-from charge.clients.autogen import AutoGenPool
+from charge.clients.client import Client
+from charge.clients.autogen import AutoGenBackend
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--lead-molecule", type=str, default="CC(=O)O[C@H](C)CCN")
@@ -75,8 +75,8 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Unknown task type: {args.exp_type}")
 
-    agent_pool = AutoGenPool(model=args.model, backend=args.backend)
-    runner = agent_pool.create_agent(task=mytask)
+    agent_backend = AutoGenBackend(model=args.model, backend=args.backend)
+    runner = agent_backend.create_agent(task=mytask)
     results = asyncio.run(runner.run())
 
     print(f"Task completed. Results: {results}")

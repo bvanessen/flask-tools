@@ -1,8 +1,8 @@
 import argparse
 import asyncio
-from charge.tasks.Task import Task
-from charge.clients.Client import Client
-from charge.clients.autogen import AutoGenPool
+from charge.tasks.task import Task
+from charge.clients.client import Client
+from charge.clients.autogen import AutoGenBackend
 from charge.servers.log_progress import LOG_PROGRESS_SYSTEM_PROMPT
 
 
@@ -35,7 +35,7 @@ def main():
     Client.add_std_parser_arguments(parser)
     args = parser.parse_args()
 
-    agent_pool = AutoGenPool(model=args.model, backend=args.backend)
+    agent_backend = AutoGenBackend(model=args.model, backend=args.backend)
 
     task = AiZynthFinderTask(
         lead_molecule=args.lead_molecule,
@@ -43,7 +43,7 @@ def main():
         server_path=args.server_path,
     )
 
-    runner = agent_pool.create_agent(task=task)
+    runner = agent_backend.create_agent(task=task)
     results = asyncio.run(runner.run())
     print(f"[{args.model} orchestrated] Task completed. Results: {results}")
 

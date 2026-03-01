@@ -3,8 +3,8 @@ import asyncio
 import time
 from charge.tasks.LMOTask import LMOTask as LeadMoleculeOptimization
 from charge.tasks.LMOTask import MoleculeOutputSchema
-from charge.clients.Client import Client
-from charge.clients.autogen import AutoGenPool
+from charge.clients.client import Client
+from charge.clients.autogen import AutoGenBackend
 import charge.utils.helper_funcs as helper_funcs
 from loguru import logger
 
@@ -51,8 +51,8 @@ if __name__ == "__main__":
 
     mol_file_path = args.json_file
 
-    agent_pool = AutoGenPool(model=args.model, backend=args.backend)
-    runner = agent_pool.create_agent(
+    agent_backend = AutoGenBackend(model=args.model, backend=args.backend)
+    runner = agent_backend.create_agent(
         task=mytask, server_urls=server_urls, server_path=server_path
     )
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                 logger.info(f"Duplicate molecule found: {canonical_smiles}")
 
             logger.info(f"Total unique molecules so far: {new_molecules}")
-            runner = agent_pool.create_agent(task=mytask)
+            runner = agent_backend.create_agent(task=mytask)
 
             if len(new_molecules) >= 5:  # Collect 5 new molecules then stop
                 break
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             logger.info("Restarting the task...")
-            runner = agent_pool.create_agent(task=mytask)
+            runner = agent_backend.create_agent(task=mytask)
             continue
 
     logger.info(f"Task completed. Results: {new_molecules}")

@@ -20,11 +20,11 @@ except (ImportError, ModuleNotFoundError) as e:
 
 import json
 import os
-from charge.tasks.Task import Task
+from charge.tasks.task import Task
 from flask_tools.utils.server_utils import add_server_arguments, update_mcp_network
 from mcp.server.fastmcp import FastMCP
-from charge.clients.autogen import AutoGenPool
-from charge.clients.Client import Client
+from charge.clients.autogen import AutoGenBackend
+from charge.clients.client import Client
 import asyncio
 from flask_tools.chemistry import smiles_utils
 from flask_tools.lmo.molecular_property_utils import get_density
@@ -41,7 +41,7 @@ mcp = FastMCP(
 
 
 JSON_FILE_PATH = f"{os.getcwd()}/known_molecules.json"
-AGENT_POOL: AutoGenPool | None = None
+AGENT_BACKEND: AutoGenBackend | None = None
 
 
 class DiagnoseSMILESTask(Task):
@@ -81,12 +81,12 @@ def diagnose_smiles(smiles: str) -> str:
     logger.info(f"Diagnosing SMILES string: {smiles}")
     task = DiagnoseSMILESTask(smiles=smiles)
 
-    global AGENT_POOL
+    global AGENT_BACKEND
     assert (
-        AGENT_POOL is not None
+        AGENT_BACKEND is not None
     ), "Agent pool is not initialized. Diagnoise Tool not available."
 
-    diagnose_agent = AGENT_POOL.create_agent(task=task)
+    diagnose_agent = AGENT_BACKEND.create_agent(task=task)
 
     try:
         response = asyncio.run(diagnose_agent.run())
@@ -183,8 +183,8 @@ def calculate_property(
 def setup_autogen_pool(
     model: str, backend: str, api_key: Optional[str], base_url: Optional[str]
 ):
-    global AGENT_POOL
-    AGENT_POOL = AutoGenPool(
+    global AGENT_BACKEND
+    AGENT_BACKEND = AutoGenBackend(
         model=model, backend=backend, api_key=api_key, base_url=base_url
     )
 

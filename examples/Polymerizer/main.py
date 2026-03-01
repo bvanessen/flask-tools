@@ -2,9 +2,9 @@ import argparse
 import asyncio
 from typing import Optional, Union
 import charge
-from charge.tasks.Task import Task
-from charge.clients.Client import Client
-from charge.clients.autogen import AutoGenPool
+from charge.tasks.task import Task
+from charge.clients.client import Client
+from charge.clients.autogen import AutoGenBackend
 
 parser = argparse.ArgumentParser()
 
@@ -188,9 +188,9 @@ if __name__ == "__main__":
         server_urls=server_url,
     )
 
-    agent_pool = AutoGenPool(model=args.model, backend=args.backend)
+    agent_backend = AutoGenBackend(model=args.model, backend=args.backend)
 
-    agent = agent_pool.create_agent(task=mytask)
+    agent = agent_backend.create_agent(task=mytask)
 
     agent_state = asyncio.run(agent.chat())
 
